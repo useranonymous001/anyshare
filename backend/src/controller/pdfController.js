@@ -1,9 +1,8 @@
-const { PDFDocument } = require("pdf-lib");
 const { GridFSBucket } = require("mongodb");
 const mongoose = require("mongoose");
 const AppError = require("../utils/errorApi");
 const mime = require("mime-types");
-const fs = require("fs");
+
 const {
   fetchImageBuffers,
   imageToPdf,
@@ -26,7 +25,7 @@ const handleConvertImageToPdf = async (req, res, next) => {
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=converted.pdf");
-    // res.setHeader("Transfer-Encoding", "chunked");
+
     readStream.pipe(res);
 
     readStream.on("finish", async () => {
