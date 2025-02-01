@@ -28,22 +28,20 @@ const storage = new GridFsStorage({
   },
 });
 
-const upload = multer(
-  { storage: storage },
-  {
-    fileFilter: (req, file, cb) => {
-      const ext = path.extname(file.originalname).toLowerCase();
-      if (
-        notAllowedExtensions.includes(ext) ||
-        notAllowedMimeTypes.includes(file.mimetype)
-      ) {
-        return cb(new Error("Malicious Files Detected"));
-      }
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (
+      notAllowedExtensions.includes(ext) ||
+      notAllowedMimeTypes.includes(file.mimetype)
+    ) {
+      return cb(new Error("Malicious Files Detected"));
+    }
 
-      cb(null, true);
-    },
-  }
-);
+    cb(null, true);
+  },
+});
 
 const imageStorage = new GridFsStorage({
   url: "mongodb://127.0.0.1:27017/anyshare",
