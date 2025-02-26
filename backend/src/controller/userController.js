@@ -136,8 +136,63 @@ const handleGetUserDetail = async (req, res, next) => {
   }
 };
 
+// [post] change password (not forgot password)
+const handleChangePassword = async (req, res, next) => {
+  const { currentPassword, newPassword, confirmPassword } = req.body;
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return res.status(400).json({ message: "no fields can be empty !!" });
+  }
+
+  try {
+    const user = await User.findOne({ email: req.user.payload.email });
+
+    if (!user) {
+      return res.status(400).json({ message: "user not found" });
+    }
+
+    const matchCurrentPassword = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
+    if (!matchCurrentPassword) {
+      return res.status(401).json({ message: "current password not matched" });
+    }
+
+    if (newPassword === confirmPassword) {
+      const newPassHash = await bcrypt.hash(
+        confirmPassword,
+        Number(process.env.SALT_ROUNDS)
+      );
+
+      if (!newPassHash) {
+        throw new Error("Cannot create hash...");
+      }
+
+      user.password = newPassHash;
+
+      await user.save();
+    }
+
+    return res.status(200).json({ message: "password changed successfull" });
+  } catch (error) {
+    if (error instanceof AppError) {
+      res.status(err.httpCode).json(error.toResponse());
+    } else {
+      res.status(500).json({
+        error: {
+          name: "InternalServerError",
+          message: `Something Went Wrong: ${error}`,
+          httpCode: 500,
+        },
+      });
+    }
+  }
+};
+
 module.exports = {
   handleGetUserDetail,
   handleUserLogin,
   handleUserRegister,
+  handleChangePassword,
 };

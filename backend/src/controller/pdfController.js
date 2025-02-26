@@ -82,4 +82,7 @@ const handleMergeMultiplePdf = async (req, res, next) => {
   }
 };
 
-module.exports = { handleConvertImageToPdf, handleMergeMultiplePdf };
+module.exports = {
+  handleConvertImageToPdf,
+  handleMergeMultiplePdf,
+};
