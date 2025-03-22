@@ -52,6 +52,9 @@ const imageStorage = new GridFsStorage({
         const fileInfo = {
           filename: filename,
           bucketName: "images",
+          metadata: {
+            userId: req.user.payload.id,
+          },
         };
         resolve(fileInfo);
       });

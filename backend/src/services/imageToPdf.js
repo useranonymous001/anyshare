@@ -2,8 +2,8 @@ const { PDFDocument } = require("pdf-lib");
 const AppError = require("../utils/errorApi");
 const { Readable } = require("node:stream");
 
-async function fetchImageBuffers(bucket) {
-  const images = await bucket.find().toArray();
+async function fetchImageBuffers(bucket, userId) {
+  const images = await bucket.find({ "metadata.userId": userId }).toArray();
 
   const imageBuffer = [];
 
@@ -19,7 +19,7 @@ async function fetchImageBuffers(bucket) {
             chunks.push(chunk);
           });
 
-          downloadStream.on("end", () => {
+          downloadStream.on("end", async () => {
             imageBuffer.push(Buffer.concat(chunks));
             resolve();
           });

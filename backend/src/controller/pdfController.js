@@ -12,6 +12,8 @@ const {
   fetchPDFBuffers,
   mergePDF,
 } = require("../services/imageToPdf");
+
+const { deleteImagesFromBucket } = require("../services/deleteUserImages");
 // const { PassThrough, pipeline } = require("node:stream");
 
 const conn = mongoose.connection;
@@ -19,7 +21,12 @@ const conn = mongoose.connection;
 const handleConvertImageToPdf = async (req, res, next) => {
   const bucket = new GridFSBucket(conn.db, { bucketName: "images" });
   try {
-    const bufferArray = await fetchImageBuffers(bucket); // returns array of image buffers
+    const userId = req.user.payload.id;
+    if (!userId) {
+      return res.status(401).json({ message: "you need to login first" });
+    }
+
+    const bufferArray = await fetchImageBuffers(bucket, userId); // returns array of image buffers
 
     const pdfBytes = await imageToPdf(bufferArray);
 
@@ -29,8 +36,6 @@ const handleConvertImageToPdf = async (req, res, next) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=converted.pdf");
 
-    // await pipeline(pdfBytes, res);
-
     readStream.on("error", (err) => {
       res.status(500).json({ message: "error occured while reading pdf" });
     });
@@ -38,7 +43,7 @@ const handleConvertImageToPdf = async (req, res, next) => {
     readStream.pipe(res);
 
     readStream.on("finish", async () => {
-      await bucket.drop();
+      await deleteImagesFromBucket(bucket, userId);
     });
   } catch (error) {
     await bucket.drop();
@@ -56,13 +61,10 @@ const handleConvertImageToPdf = async (req, res, next) => {
 
 // merge multiple pdf
 const handleMergeMultiplePdf = async (req, res, next) => {
-  // open the bucket and fetch all the pdf uploaded by the user
   const bucket = new GridFSBucket(conn.db, { bucketName: "pdfs" });
   try {
-    // create a array of pdfBytes of the uploaded pdfs
     const pdfArrayBuffers = await fetchPDFBuffers(bucket);
 
-    // create a blank pdf doc and add all the pages to the new doc
     const mergedPdfBytes = await mergePDF(pdfArrayBuffers);
 
     const readStream = new PassThrough();
@@ -71,14 +73,12 @@ const handleMergeMultiplePdf = async (req, res, next) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=merged.pdf");
 
-    // const readStream = Readable.from(mergedPdfBytes);
     readStream.pipe(res);
-    // await pipeline(readStream, res);
 
     readStream.on("error", (err) => {
       return res.status(500).json({ message: "cannot read the pdf data" });
     });
-    // drop the database after finishing the task
+
     readStream.on("finish", async () => {
       await bucket.drop();
     });
