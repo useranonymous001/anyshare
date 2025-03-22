@@ -70,7 +70,7 @@ const imageUpload = multer({
   storage: imageStorage,
 
   fileFilter: (req, file, cb) => {
-    const allowedMimeTypes = ["application/image"];
+    const allowedMimeTypes = ["application/image", "image/png"];
     const allowedExtension = [".png"];
 
     const ext = path.extname(file.originalname).toLowerCase();

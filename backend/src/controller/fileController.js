@@ -13,8 +13,7 @@ const AppError = require("../utils/errorApi");
 const shareableLink = require("../model/shareableLinkModel");
 const SharedFile = require("../model/sharedFileModel");
 const mime = require("mime-types");
-const { PDFDocument } = require("pdf-lib");
-const fs = require("fs");
+const { pipeline } = require("node:stream");
 
 const conn = mongoose.connection;
 
@@ -88,14 +87,16 @@ const downloadFile = async (req, res) => {
     // opening a reading stream to read the streams of data from the grid
     const downloadStream = bucket.openDownloadStream(file._id);
 
-    downloadStream.pipe(res);
+    pipeline(downloadStream, res, (err) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ message: "some error occured while downloading" });
+      }
+    });
 
     downloadStream.on("error", (err) => {
       res.status(500).json({ error: err.message });
-    });
-
-    downloadStream.on("end", () => {
-      console.log("writing complete");
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

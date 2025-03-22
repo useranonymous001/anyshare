@@ -1,5 +1,4 @@
 const ErrorHandler = (err, req, res, next) => {
-  console.log("Error Handler: middleware");
   const errStatus = err.statusCode || 500;
   const errMessage = err.message || "Something Went Wrong";
   res.status(errStatus).json({

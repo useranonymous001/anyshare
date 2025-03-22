@@ -1,5 +1,6 @@
 const { PDFDocument } = require("pdf-lib");
 const AppError = require("../utils/errorApi");
+const { Readable } = require("node:stream");
 
 async function fetchImageBuffers(bucket) {
   const images = await bucket.find().toArray();
@@ -62,7 +63,7 @@ async function imageToPdf(imageBuffer) {
     throw new AppError(
       "InvalidImageType",
       500,
-      "Only PNG images are accepted",
+      `Only PNG images are accepted: ${error.message}`,
       true
     );
   }

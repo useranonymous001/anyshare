@@ -2,6 +2,9 @@ const { GridFSBucket } = require("mongodb");
 const mongoose = require("mongoose");
 const AppError = require("../utils/errorApi");
 const mime = require("mime-types");
+// const { Readable } = require("stream");
+const { pipeline } = require("stream/promises");
+const { PassThrough } = require("stream");
 
 const {
   fetchImageBuffers,
@@ -9,7 +12,7 @@ const {
   fetchPDFBuffers,
   mergePDF,
 } = require("../services/imageToPdf");
-const { PassThrough } = require("stream");
+// const { PassThrough, pipeline } = require("node:stream");
 
 const conn = mongoose.connection;
 // convert image to pdf
@@ -25,6 +28,12 @@ const handleConvertImageToPdf = async (req, res, next) => {
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=converted.pdf");
+
+    // await pipeline(pdfBytes, res);
+
+    readStream.on("error", (err) => {
+      res.status(500).json({ message: "error occured while reading pdf" });
+    });
 
     readStream.pipe(res);
 
@@ -62,8 +71,13 @@ const handleMergeMultiplePdf = async (req, res, next) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=merged.pdf");
 
+    // const readStream = Readable.from(mergedPdfBytes);
     readStream.pipe(res);
+    // await pipeline(readStream, res);
 
+    readStream.on("error", (err) => {
+      return res.status(500).json({ message: "cannot read the pdf data" });
+    });
     // drop the database after finishing the task
     readStream.on("finish", async () => {
       await bucket.drop();
