@@ -69,8 +69,10 @@ async function imageToPdf(imageBuffer) {
   }
 }
 
-async function fetchPDFBuffers(bucket) {
-  const uploadedPDF = await bucket.find().toArray();
+async function fetchPDFBuffers(bucket, userId) {
+  const uploadedPDF = await bucket
+    .find({ "metadata.userId": userId })
+    .toArray();
 
   if (uploadedPDF.length < 1) {
     throw new AppError("No File is Uploaded", 500);

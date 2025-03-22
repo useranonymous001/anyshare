@@ -13,7 +13,7 @@ const {
   mergePDF,
 } = require("../services/imageToPdf");
 
-const { deleteImagesFromBucket } = require("../services/deleteUserImages");
+const { clearBucket } = require("../services/clearBucket");
 // const { PassThrough, pipeline } = require("node:stream");
 
 const conn = mongoose.connection;
@@ -43,10 +43,10 @@ const handleConvertImageToPdf = async (req, res, next) => {
     readStream.pipe(res);
 
     readStream.on("finish", async () => {
-      await deleteImagesFromBucket(bucket, userId);
+      await clearBucket(bucket, userId);
     });
   } catch (error) {
-    await bucket.drop();
+    await clearBucket(bucket, userId);
     if (error instanceof AppError) {
       return res.status(error.httpCode).json(error.toResponse());
     } else {
@@ -62,9 +62,12 @@ const handleConvertImageToPdf = async (req, res, next) => {
 // merge multiple pdf
 const handleMergeMultiplePdf = async (req, res, next) => {
   const bucket = new GridFSBucket(conn.db, { bucketName: "pdfs" });
+  const userId = req.user.payload.id;
+  if (!userId) {
+    return res.status(400).json({ message: "need to login first" });
+  }
   try {
-    const pdfArrayBuffers = await fetchPDFBuffers(bucket);
-
+    const pdfArrayBuffers = await fetchPDFBuffers(bucket, userId);
     const mergedPdfBytes = await mergePDF(pdfArrayBuffers);
 
     const readStream = new PassThrough();
@@ -80,10 +83,10 @@ const handleMergeMultiplePdf = async (req, res, next) => {
     });
 
     readStream.on("finish", async () => {
-      await bucket.drop();
+      await clearBucket(bucket, userId);
     });
   } catch (error) {
-    await bucket.drop();
+    await clearBucket(bucket, userId);
     if (error instanceof AppError) {
       return res.status(error.httpCode).json(error.toResponse());
     } else {

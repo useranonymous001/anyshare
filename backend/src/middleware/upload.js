@@ -102,6 +102,9 @@ const pdfStorage = new GridFsStorage({
         const fileInfo = {
           filename: filename,
           bucketName: "pdfs",
+          metadata: {
+            userId: req.user.payload.id,
+          },
         };
 
         resolve(fileInfo);
@@ -124,6 +127,7 @@ const pdfUpload = multer({
     const allowedExtension = [".pdf"];
 
     const ext = path.extname(file.originalname).toLowerCase();
+
     if (
       !allowedMimeTypes.includes(file.mimetype) ||
       !allowedExtension.includes(ext)
