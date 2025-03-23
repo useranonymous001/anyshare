@@ -2,8 +2,6 @@ const { GridFSBucket } = require("mongodb");
 const mongoose = require("mongoose");
 const AppError = require("../utils/errorApi");
 const mime = require("mime-types");
-// const { Readable } = require("stream");
-const { pipeline } = require("stream/promises");
 const { PassThrough } = require("stream");
 
 const {
@@ -14,7 +12,6 @@ const {
 } = require("../services/imageToPdf");
 
 const { clearBucket } = require("../services/clearBucket");
-// const { PassThrough, pipeline } = require("node:stream");
 
 const conn = mongoose.connection;
 // convert image to pdf

@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
 const { slowDown } = require("express-slow-down");
 const { rateLimit } = require("express-rate-limit");
+const proxyRoute = require("../loadbalancer/routes/proxy");
 
 dotenv.config();
 const port = process.env.PORT || 3000;
@@ -16,6 +17,7 @@ const { ErrorHandler } = require("./src/middleware/errorHandler");
 // const { checkForAuthentication } = require("./src/middleware/authentication");
 
 // app.use(cors());
+app.use("/", proxyRoute);
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
@@ -39,6 +41,10 @@ const userRoutes = require("./src/routes/userRoutes");
 const pdfRoute = require("./src/routes/pdfRoute");
 
 // Routes
+
+app.get("/", (req, res) => {
+  res.send("helo");
+});
 app.use("/api/user", userRoutes);
 app.use("/api/files", downloadLimiter, fileRoutes);
 app.use("/api/pdf", pdfRoute);
