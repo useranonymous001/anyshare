@@ -123,7 +123,7 @@ const handleGetUserDetail = async (req, res, next) => {
     });
   } catch (error) {
     if (error instanceof AppError) {
-      res.status(err.httpCode).json(error.toResponse());
+      res.status(error.httpCode).json(error.toResponse());
     } else {
       res.status(500).json({
         error: {
@@ -177,7 +177,7 @@ const handleChangePassword = async (req, res, next) => {
     return res.status(200).json({ message: "password changed successfull" });
   } catch (error) {
     if (error instanceof AppError) {
-      res.status(err.httpCode).json(error.toResponse());
+      res.status(error.httpCode).json(error.toResponse());
     } else {
       res.status(500).json({
         error: {
