@@ -39,6 +39,9 @@ const userRoutes = require("./src/routes/userRoutes");
 const pdfRoute = require("./src/routes/pdfRoute");
 
 // Routes
+app.get("/health", (req, res, next) => {
+  res.send("alive");
+});
 
 app.use("/api/user", userRoutes);
 app.use("/api/files", downloadLimiter, fileRoutes);
